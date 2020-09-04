@@ -156,21 +156,6 @@ This plugin consists of the following functinos:
 - speedHandler
   - calculates session speeds. It's called by urlHandler and ontimeupdate of html5 video.
 
-# Note
-
-## mode 0 (simple speed comparision)
-
-Currenlty, this mode only use Resource Timing API to calculate speed. Probalbly, this mode works on another media player like Video.js and so on.
-
-## Safari iOS
-
-They do not support transferSize on Resource Timing API. We can not get file size to calcuate speeds. As a workaround, I added media-filesize.js like the following:
-- ts_size["cb000.ts"]=272036;
-- ts_size["cb001.ts"]=271284;
-- ts_size["cb002.ts"]=271284;
-
-I plan to implement a new feasure to get the file size using the internal code of hls.js without filesize.js
-
 # Sample media files
 
 - cb.zip
@@ -178,5 +163,40 @@ I plan to implement a new feasure to get the file size using the internal code o
   - 1920x1080, 60 FPS, all I-frames
     - ffmpeg -loop 1 -i 1920px-SMPTE_Color_Bars_16x9.svg.png -t 180 -vcodec libx264 -pix_fmt yuv420p -r 60 -f hls -hls_time 2 -g 1 -hls_playlist_type vod  -hls_segment_filename "cb%3d.ts" cb-2.m3u8
 
+- sunrize.zip
+  - sunrise.mp4: my own sunrise video at top of Mt. Fuji (copyfree)
+  - 1920x1080, 30FPS
+    - ffmpeg -i sunrise.mp4 -t 30 -c:v libx264 -pix_fmt yuv420p  -c:a aac -b:a 256k -f hls -r 30 -hls_time 2 -g 30  -sc_threshold 0  -hls_playlist_type vod -hls_segment_filename "sunrise%3d.ts" sunrise-2.m3u8
+
+# Note and future work
+
+## Player side multi CDN
+
+We can use this plugin to choose any 2 media servers (or CDNs). We can use this plugin as a selector for 2 CDNs (e.g. akamai and cloudfront, https://aaa.cloudfront.net/hls/xxx.ts and  https://aaa.edgesuite.net/hls/xxx.ts)
+
+## mode 0 (simple speed comparision)
+
+Currenlty, this mode only use W3C Resource Timing API to calculate speed. Probalbly, this mode will work on another media player like Video.js and so on.
+
+## Safari iOS
+
+They do not support transferSize on Resource Timing API. We can not get file sizes to calcuate speeds. As a workaround, I added media-filesize.js like the following:
+- ts_size["cb000.ts"]=272036;
+- ts_size["cb001.ts"]=271284;
+- ts_size["cb002.ts"]=271284;
+
+I plan to implement a new feasure to get the file size using the internal code of hls.js without filesize.js
+
+## IPv6 native support
+
+Currently, this plugin determines the using protocol from media URL. But, better way to handle them is to get IPv4 and IPv6 addresses from a URL and use different connections for each. It needs some deep customization of hls.js.
+
+## Speed calculation
+
+This plugin only supports sequential play. Any trick play (fast forward, rewinding) would be problme.
+
+## Better protocol selection (mode 3, continous check)
+
+This plugin use average speed of lastest the 4 chunks of each protocols to choose the better protocol and keep use slower protocol by 1:4 ratio.However, this algorithm is tentative. We should find better way to choose.
 
 
