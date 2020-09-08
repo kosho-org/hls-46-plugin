@@ -3,13 +3,13 @@ A plug-in for hls.js to compares speeds of IPv4 and IPv6 session and chooses the
 
 # Mode
 
-- mode 0 (simple speed comparision)
-  - The player only monitors download speeds. This mode use special (mixed) playlist (m3u8).
-- mode 1 (speed comparision)
-  - The player automatically adds URL prefix (e.g. https://ipv6.example.com/hls) and monitores download speeds.
-- mode 2 (initital check to choose)
+- mode 0 (simple speed comparison)
+  - The player only monitors download speeds. This mode uses special (mixed) playlist (m3u8).
+- mode 1 (speed comparison)
+  - The player automatically adds URL prefix (e.g. https://ipv6.example.com/hls) and monitors download speeds.
+- mode 2 (initial check to choose)
   - The player compares the speeds of protocols during the first segments. After that, the player keeps using the faster protocol.
-- mode 3 (continous check to choose)
+- mode 3 (continuous check to choose)
   - The player compares the speeds of protocols during the first segments. After that, the player uses both protocols by the following rate (e.g. faster protocol: 4, slower protocol: 1) to get the latest speeds. 
 
 # Files
@@ -64,9 +64,9 @@ Sample: http://ipv6.jpcdn.jp/hls-comp0.html
   </script>
 </html>
 ```
-You must use mixed m3u8. You can omit hls46init's 3rd and 4th pamrameters (mode 0 does not use them).
+You must use mixed m3u8. You can omit hls46init's 3rd and 4th parameters (mode 0 does not use them).
 
-- Simplificaiton
+- Simplification
   - If you do not need iOS safari support, you can omit cb-2-filesize.js.
   - If you do not need reporting, you can omit hls46init's 2nd and 3rd parameters. Also you do not have to install system files (beacon.php, ip.php, uid.php, sid.php)
     - hls46init(0,"","","","");
@@ -104,7 +104,7 @@ Sample: http://ipv6.jpcdn.jp/hls-comp1.html
 ```
 You must use normal m3u8 and set 3rd and 4th pamrameters of hls46init. Simplificaiton is the same as mode 0.
 
-## Mode 2 (initital check)
+## Mode 2 (initial check)
 Sample: http://ipv6.jpcdn.jp/hls-mcdn1.html
 
 The first parameter of hls46init is 2. Other things are the same as mode 1.
@@ -122,7 +122,7 @@ You must arrange files as the following:
 - https://ipv4.example.com/
   - https://ipv4.example.com/ip.php (to get IPv4 address by plugin)
 - https://ipv6.example.com/
-  - https://ipv6.example.com/beacon.php (to send statistic by plugin)
+  - https://ipv6.example.com/beacon.php (to send statistics by plugin)
   - https://ipv6.example.com/uid.php (to get user-id by plugin)
   - https://ipv6.example.com/sid.php (to get session-id by plugin)
   - https://ipv6.example.com/ip.php (to get IPv4 address by plugin)
@@ -170,22 +170,31 @@ This plugin consists of the following functinos:
 
 # Note and future work
 
+## Chunk size correction
+
+Real media files have different size of chunk. It has a negative effect on speed comparison. 
+
+Due to TCP slow start, 
+- Rapid movement scene (chunk) -> Big chunk size -> Transfer (TCP) speed is faster
+- Quiet movement scene (chunk) -> Small chunk size -> Transfer (TCP) speed is slower
+We need to correct them to fair speed comparison.
+
 ## Player side multi CDN
 
-We can use this plugin to choose any 2 media servers (or CDNs). We can use this plugin as a selector for 2 CDNs (e.g. akamai and cloudfront, https://aaa.cloudfront.net/hls/xxx.ts and  https://aaa.edgesuite.net/hls/xxx.ts)
+We can use this plugin to choose any 2 media servers (or CDNs) without any modification (e.g. akamai and cloudfront, https://aaa.cloudfront.net/hls/xxx.ts and  https://aaa.edgesuite.net/hls/xxx.ts)
 
 ## mode 0 (simple speed comparision)
 
-Currenlty, this mode only use W3C Resource Timing API to calculate speed. Probalbly, this mode will work on another media player like Video.js and so on.
+Currently, this mode only use W3C Resource Timing API to calculate speed. Probably, this mode will work on another media player like Video.js and so on.
 
 ## Safari iOS
 
-They do not support transferSize on Resource Timing API. We can not get file sizes to calcuate speeds. As a workaround, I added media-filesize.js like the following:
+They do not support transferSize on Resource Timing API. We can not get file sizes to calculate speeds. As a workaround, I added media-filesize.js like the following:
 - ts_size["cb000.ts"]=272036;
 - ts_size["cb001.ts"]=271284;
 - ts_size["cb002.ts"]=271284;
 
-I plan to implement a new feasure to get the file size using the internal code of hls.js without filesize.js
+I plan to implement a new feature to get the file size using the internal code of hls.js without filesize.js
 
 ## IPv6 native support
 
@@ -193,10 +202,10 @@ Currently, this plugin determines the using protocol from media URL. But, better
 
 ## Speed calculation
 
-This plugin only supports sequential play. Any trick play (fast forward, rewinding) would be problme.
+This plugin only supports sequential play. Any trick play (fast forward, rewinding) would be problem.
 
 ## Better protocol selection (mode 3, continous check)
 
-This plugin use average speed of lastest the 4 chunks of each protocols to choose the better protocol and keep use slower protocol by 1:4 ratio.However, this algorithm is tentative. We should find better way to choose.
+This plugin use average speed of latest the 4 chunks of each protocols to choose the better protocol and keep use slower protocol by 1:4 ratio.However, this algorithm is tentative. We should find better way to choose.
 
 
